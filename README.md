@@ -26,6 +26,31 @@ Conçu pour les particuliers qui mènent une rénovation énergétique d'envergu
 
 Les données démo s'affichent immédiatement. Pour partir d'une base vierge, suivez la section *Customisation* ci-dessous.
 
+## Structure du projet
+
+```
+chantier-dashboard/
+├── index.html              Markup (chargé directement, aucune build étape)
+├── css/
+│   ├── base.css            Reset, typographie, layout, sidebar, top bar, boutons
+│   ├── components.css      Cartes bento : hero, progression, stats, timeline, travaux…
+│   └── widgets.css         Modales, formulaires, toasts, palette ⌘K, photos, switcher
+├── js/
+│   ├── utils.js            Helpers purs : formatters de date, normalize, slugify
+│   ├── ui.js               openModal / closeModal / toast
+│   ├── state.js            Données + storage (localStorage + IndexedDB), proxy d'état
+│   ├── render.js           Toutes les fonctions de rendu (timeline, paiements, pie, etc.)
+│   ├── pdf-extract.js      Extraction PDF + parsing dates/montants/références
+│   ├── photos.js           Modale galerie avant/après + slider de comparaison
+│   ├── properties.js       Gestion des propriétés (add/edit/delete + panneau)
+│   ├── features.js         Tri intelligent, agenda export, palette ⌘K, assistant
+│   └── main.js             Bootstrap : switch projet, import JSON, init au chargement
+├── README.md
+└── .gitignore
+```
+
+L'ordre de chargement dans `index.html` respecte les dépendances (utils → ui → state → render → pdf-extract → photos → properties → features → main). Chaque module expose ses fonctions au scope global ; pas de système de modules, pas de bundler, ouverture directe via `file://` ou serveur statique.
+
 ## Customisation
 
 **Le moyen le plus simple : utilisez directement l'interface.** Au premier lancement, supprimez les propriétés de démo via le panneau « Gérer les propriétés » (voir section suivante), puis ajoutez les vôtres avec le bouton « + Ajouter ». Importez vos PDF dans la section Documents, et les jalons + données financières se remplissent automatiquement.
@@ -153,3 +178,4 @@ Si vous voulez un mode 100 % hors-ligne après le premier chargement : les resso
 ## Licence
 
 MIT — utilisez, modifiez, partagez librement.
+

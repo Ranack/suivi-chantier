@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de suivi de chantier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/widgets.css">
+</head>
+<body>
+
+<!-- SVG defs -->
+<svg width="0" height="0" style="position: absolute;">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7A45"/>
+      <stop offset="100%" stop-color="#FFB366"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar">
+    <div class="project-switcher" id="project-switcher">
+      <div class="ps-trigger" id="ps-trigger">
+        <div class="logo-mark" id="ps-mark"></div>
+        <div class="ps-info">
+          <div class="ps-name" id="ps-name"></div>
+          <div class="ps-sub" id="ps-sub"></div>
+        </div>
+        <div class="ps-caret">▾</div>
+      </div>
+      <div class="ps-dropdown" id="ps-dropdown">
+        <!-- populated dynamically by renderProjectSwitcher() -->
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Pilotage</div>
+      <a href="#overview" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Vue d'ensemble</a>
+      <a href="#assistant" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Assistant</a>
+      <a href="#timeline" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Chronologie</a>
+      <a href="#works" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Travaux</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Financier</div>
+      <a href="#finance" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Financement</a>
+      <a href="#payments" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Paiements</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Ressources</div>
+      <a href="#documents" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Documents</a>
+      <a href="#contacts" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Contacts</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar">JD</div>
+        <div class="user-info">
+          <div class="name">Jean Dupont</div>
+          <div class="addr">Votre commune</div>
+        </div>
+      </div>
+
+      <div class="save-indicator" title="Sauvegarde automatique dans ce navigateur">
+        <div class="save-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        </div>
+        <div class="save-text">
+          <div class="save-status" id="save-status">En attente</div>
+          <div class="save-time" id="save-time">rien à sauvegarder</div>
+        </div>
+      </div>
+
+      <div class="save-actions">
+        <button class="btn-mini" onclick="exportStateToFile()" title="Télécharger une copie de votre tableau de bord">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exporter
+        </button>
+        <button class="btn-mini" onclick="document.getElementById('import-state-input').click()" title="Restaurer depuis un fichier .json">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Importer
+        </button>
+        <input type="file" id="import-state-input" accept=".json,application/json" style="display:none">
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="greeting">
+        <h1>Bonjour <em>·</em> votre chantier</h1>
+        <div class="sub" id="today-date"></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="cmdk-trigger" id="cmdk-trigger" aria-label="Ouvrir la palette de commandes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="placeholder">Rechercher partout…</span>
+          <kbd>⌘K</kbd>
+        </button>
+        <button class="btn ghost" onclick="openModal('calendar-modal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Agenda
+        </button>
+        <button class="btn primary" onclick="document.getElementById('file-input').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un document
+        </button>
+      </div>
+    </div>
+
+    <!-- Next-event notification banner -->
+    <div class="notif-banner" id="notif-banner">
+      <div class="notif-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="notif-body">
+        <div class="notif-title">
+          <span class="lbl">Prochain événement</span><span id="notif-title-text">—</span>
+        </div>
+        <div class="notif-meta" id="notif-meta">—</div>
+      </div>
+      <div class="notif-cta">→</div>
+    </div>
+
+    <!-- Bento -->
+    <div class="bento" id="overview">
+      <!-- Hero -->
+      <div class="card card-hero">
+        <div class="card-label">
+          <span id="hero-tagline">Rénovation globale · Démo</span>
+          <span class="badge live" id="hero-badge">● ACTIF</span>
+        </div>
+        <h2 class="hero-title"><span id="hero-name">Maison principale </span><em id="hero-em">— exemple de chantier.</em></h2>
+        <p class="hero-desc" id="hero-desc">Projet de rénovation énergétique exemple. Remplacez ces données par votre propre projet : importez vos PDF (devis, factures, attribution d'aides), saisissez vos jalons, et le dashboard se met à jour automatiquement.</p>
+        <div class="hero-meta">
+          <div class="hero-meta-item"><div class="lbl">DPE initial</div><div class="val accent" id="meta-dpe">F</div></div>
+          <div class="hero-meta-item"><div class="lbl">Sauts de classe</div><div class="val" id="meta-sauts">4</div></div>
+          <div class="hero-meta-item"><div class="lbl">Catégorie</div><div class="val" id="meta-cat">Modeste</div></div>
+          <div class="hero-meta-item"><div class="lbl">Durée prévue</div><div class="val" id="meta-duree">6 mois</div></div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="card card-progress">
+        <div class="card-label"><span>Avancement global</span><span class="badge" id="progress-badge">Phase 3/5</span></div>
+        <div class="progress-main">
+          <div class="donut">
+            <svg viewBox="0 0 140 140">
+              <circle class="track" cx="70" cy="70" r="60"/>
+              <circle class="bar" id="progress-bar-circle" cx="70" cy="70" r="60"/>
+            </svg>
+            <div class="donut-center">
+              <div class="pct"><span id="progress-pct">25</span>%</div>
+              <div class="pct-sub">Complété</div>
+            </div>
+          </div>
+          <div class="progress-info">
+            <div class="phase" id="progress-phase">Phase préparatoire</div>
+            <div class="next" id="progress-next">Prochaine étape : <strong>planification du démarrage</strong> après validation de l'acompte.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card card-stat requires-financials">
+        <div class="stat-top">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="stat-chip neutral">HT 98 803 €</div>
+        </div>
+        <div class="stat-val accent">104 237<span class="unit">,64 €</span></div>
+        <div class="stat-lbl">Coût total TTC</div>
+        <div class="stat-meta">TVA 5,5% · 5 434,19 €</div>
+      </div>
+
+      <div class="card card-stat requires-financials">
+        <div class="stat-top">
+          <div class="stat-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+          <div class="stat-chip">+41%</div>
+        </div>
+        <div class="stat-val">42 800<span class="unit"> €</span></div>
+        <div class="stat-lbl">MaPrimeRénov'</div>
+        <div class="stat-meta">Attribuée · 17.04.2026</div>
+      </div>
+
+      <div class="card card-stat requires-financials">
+        <div class="stat-top">
+          <div class="stat-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="stat-chip">Payé</div>
+        </div>
+        <div class="stat-val" id="acompte-stat-val">18 431<span class="unit">,30 €</span></div>
+        <div class="stat-lbl">Acompte versé</div>
+        <div class="stat-meta" id="paiement-summary">Payé le <span id="paid-date-display">—</span></div>
+      </div>
+
+      <div class="card card-stat requires-financials">
+        <div class="stat-top">
+          <div class="stat-icon warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="stat-chip neutral">À régler</div>
+        </div>
+        <div class="stat-val" id="solde-final-val">38 506<span class="unit">,34 €</span></div>
+        <div class="stat-lbl">Solde final estimé</div>
+        <div class="stat-meta">Après MPR' + Ambassadeur</div>
+      </div>
+
+      <!-- Reste à charge pair -->
+      <div class="card card-reste requires-financials" style="grid-column: span 6;">
+        <div class="reste-top">
+          <div class="reste-lbl">Reste à charge · avant bonus</div>
+          <div class="reste-chip">Brut</div>
+        </div>
+        <div class="reste-big" id="reste-avant">61 437<span class="unit">,64 €</span></div>
+        <div class="reste-desc">Ce que vous paieriez après déduction de MaPrimeRénov', sans tenir compte du bonus Ambassadeur.</div>
+        <div class="reste-calc">104 237,64 € <span class="op">−</span> 42 800,00 € <span class="op">=</span> <strong style="color: var(--text);">61 437,64 €</strong></div>
+      </div>
+
+      <div class="card card-reste card-reste-hero requires-financials" style="grid-column: span 6;">
+        <div class="reste-top">
+          <div class="reste-lbl">Reste à charge · avec bonus déduit</div>
+          <div class="reste-chip net">Net</div>
+        </div>
+        <div class="reste-big accent" id="reste-avec">56 937<span class="unit">,64 €</span></div>
+        <div class="reste-desc">Votre coût réel, bonus Ambassadeur de 4 500 € déduit. Déjà versé : <strong style="color: var(--text);" id="reste-acompte-inline">18 431,30 €</strong>.</div>
+        <div class="reste-calc">61 437,64 € <span class="op">−</span> 4 500,00 € <span class="op">=</span> <strong style="color: var(--accent);">56 937,64 €</strong></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-row">
+        <button class="action-card" onclick="document.getElementById('file-input').click()">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <div>
+            <div class="info-t">Importer un document</div>
+            <div class="info-s">PDF, image — extraction auto dates, montants, refs</div>
+          </div>
+          <div class="arrow">→</div>
+        </button>
+        <button class="action-card" onclick="openModal('paste-modal')">
+          <div class="icon violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div>
+            <div class="info-t">Coller un email</div>
+            <div class="info-s">Extraire infos et dates d'un message reçu</div>
+          </div>
+          <div class="arrow">→</div>
+        </button>
+        <button class="action-card" onclick="openModal('calendar-modal')">
+          <div class="icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div>
+            <div class="info-t">Synchroniser Google Agenda</div>
+            <div class="info-s">Exporter .ics ou ajouter chaque jalon</div>
+          </div>
+          <div class="arrow">→</div>
+        </button>
+      </div>
+
+      <!-- Assistant -->
+      <div class="card card-assistant" id="assistant">
+        <div class="assistant-grid">
+          <div class="assistant-intro">
+            <div>
+              <div class="card-label"><span>§ Intelligence</span><span class="badge live">● En ligne</span></div>
+              <div class="title">Posez une question, <em>trouvez la réponse.</em></div>
+              <p>L'assistant indexe en temps réel vos documents : devis, factures, procuration, contrats, notifications administratives, mais aussi les fichiers que vous ajoutez.</p>
+            </div>
+            <div class="suggestions">
+              <button class="chip" data-q="Quel est le montant total ?">Montant total</button>
+              <button class="chip" data-q="Qui est l'artisan ?">Artisan</button>
+              <button class="chip" data-q="Quelle aide est attribuée ?">Aide</button>
+              <button class="chip" data-q="Quand se termine le chantier ?">Date fin</button>
+              <button class="chip" data-q="IBAN pour payer ?">IBAN</button>
+              <button class="chip" data-q="Date de rétractation ?">Rétractation</button>
+            </div>
+          </div>
+          <div class="assistant-side">
+            <div class="chat-header"><span class="dot"></span>Assistant · base de <span id="kb-count">0</span> entrées</div>
+            <div class="conversation" id="conv">
+              <div class="msg bot">
+                <div class="intro-txt">Bonjour. Importez vos documents puis cliquez une suggestion ou posez votre question.</div>
+              </div>
+            </div>
+            <div class="chat-input-wrap">
+              <input type="text" id="qinput" placeholder="Ex : quel est le SIRET de l'artisan ?" autocomplete="off">
+              <button id="sendbtn" aria-label="Envoyer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card card-timeline" id="timeline">
+        <div class="tl-header">
+          <div>
+            <div class="card-label" style="margin-bottom: 4px;"><span>§ Chronologie</span><span class="badge">7 jalons</span></div>
+            <div class="tl-title">De la visite technique à la <em>fin de chantier</em></div>
+          </div>
+          <button class="btn ghost" onclick="openModal('calendar-modal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exporter
+          </button>
+        </div>
+        <div class="tl-scroll">
+          <div class="tl-track"></div>
+          <div class="tl-nodes" id="tl-nodes"></div>
+        </div>
+      </div>
+
+      <!-- Finance / Pie chart -->
+      <div class="card card-pie requires-financials" id="finance">
+        <div class="card-label"><span>§ Répartition du financement</span><span class="badge" id="pie-total-badge">100 000 € · TTC</span></div>
+        <div class="tl-title" style="margin-bottom: 4px;">Le <em>camembert</em> des sommes</div>
+        <div style="color: var(--text-3); font-size: 12px;">Survolez une part pour en voir le détail. Se met à jour automatiquement selon les paiements.</div>
+
+        <div class="pie-wrap">
+          <div class="pie-container">
+            <svg viewBox="0 0 200 200">
+              <g id="pie-slices" transform="rotate(-90 100 100)"></g>
+            </svg>
+            <div class="pie-center" id="pie-center">
+              <div class="amount" id="pie-amount">100 000<span class="unit">€</span></div>
+              <div class="sub" id="pie-sub">Coût total TTC</div>
+              <div class="sub-pct" id="pie-pct"></div>
+            </div>
+          </div>
+          <div class="pie-legend" id="pie-legend"></div>
+        </div>
+      </div>
+
+      <!-- Aids -->
+      <div class="card card-aids requires-financials">
+        <div class="card-label"><span>§ Aides & bonus</span><span class="badge">3 dispositifs</span></div>
+        <div class="tl-title" style="margin-bottom: 16px;">Vos <em>aides</em></div>
+        <div class="aids-list">
+          <div class="aid-item">
+            <div class="aid-top"><div class="aid-name">Aide <em>principale</em></div><div class="aid-amt">40 000 €</div></div>
+            <div class="aid-desc">Exemple : MaPrimeRénov' Parcours Accompagné, ou tout autre dispositif principal.</div>
+            <div class="aid-meta">
+              <span>Dossier <strong>EXEMPLE-XXX</strong></span>
+              <span>Valable jusqu'au <strong>JJ.MM.AAAA</strong></span>
+            </div>
+          </div>
+          <div class="aid-item">
+            <div class="aid-top"><div class="aid-name">Bonus / <em>Ambassadeur</em></div><div class="aid-amt">4 000 €</div></div>
+            <div class="aid-desc">Exemple : programme ambassadeur d'un installateur, déduit de la facture finale.</div>
+            <div class="aid-meta">
+              <span>Code <strong>EXEMPLE</strong></span>
+              <span>Signé <strong>JJ.MM.AAAA</strong></span>
+            </div>
+          </div>
+          <div class="aid-item">
+            <div class="aid-top"><div class="aid-name">Parrainage <em>partenaire</em></div><div class="aid-amt">Jusqu'à 2 500 €</div></div>
+            <div class="aid-desc">Exemple : programme de parrainage. À adapter selon votre situation.</div>
+            <div class="aid-meta">
+              <span>Code <strong>EXEMPLE</strong></span>
+              <span>Valable <strong>JJ.MM.AAAA</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paiements table -->
+      <div class="card card-payments requires-financials" id="payments">
+        <div class="card-label"><span>§ Paiements</span><span class="badge">Cliquez pour éditer</span></div>
+        <div class="tl-title" style="margin-bottom: 6px;">Échéancier des <em>factures</em></div>
+        <div style="color: var(--text-3); font-size: 12px; margin-bottom: 8px;">Les dates de paiement sont éditables — cliquez dessus pour les mettre à jour.</div>
+        <table class="pay-table">
+          <thead>
+            <tr>
+              <th style="width: 180px;">Référence</th>
+              <th>Objet</th>
+              <th style="width: 120px; text-align: right;">Montant</th>
+              <th style="width: 160px;">Facturé le</th>
+              <th style="width: 180px;">Payé le</th>
+              <th style="width: 110px;">Statut</th>
+            </tr>
+          </thead>
+          <tbody id="pay-body">
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Works -->
+      <div class="card card-works" id="works">
+        <div class="card-label"><span>§ Travaux planifiés</span><span class="badge" id="works-badge">7 postes</span></div>
+        <div class="tl-title" style="margin-bottom: 12px;">Vos postes de <em>travaux</em></div>
+        <div class="works-grid" id="works-grid"></div>
+      </div>
+
+      <!-- Future works -->
+      <div class="card card-future" id="future-works">
+        <div class="card-label">
+          <span>§ Travaux à prévoir</span>
+          <div style="display: flex; align-items: center;">
+            <button class="ai-sort-btn" id="ai-sort-btn" onclick="aiSortFutureWorks()" title="Reclasser automatiquement les priorités selon échéances, dépendances et type de travaux">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg>
+              Trier intelligemment
+            </button>
+            <button class="future-add-btn" onclick="openFutureModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Ajouter
+            </button>
+          </div>
+        </div>
+        <div class="tl-title" style="margin-bottom: 4px;">Vos <em>chantiers futurs</em></div>
+        <div style="color: var(--text-3); font-size: 12px;">Esquisses, idées et projets à planifier — classés par priorité.</div>
+        <div class="future-list" id="future-list"></div>
+      </div>
+
+      <!-- Documents -->
+      <div class="card card-docs" id="documents">
+        <div class="card-label"><span>§ Documents</span><span class="badge" id="docs-badge">5 pièces</span></div>
+        <div class="tl-title" style="margin-bottom: 14px;">Votre dossier <em>documentaire</em></div>
+
+        <div class="docs-layout">
+          <div class="upload-zone" id="upload-zone">
+            <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <div class="upload-title">Déposez un document</div>
+            <div class="upload-sub">ou cliquez pour parcourir</div>
+            <div class="upload-formats">PDF · JPG · PNG · max 20MB</div>
+            <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.txt" multiple style="display:none">
+          </div>
+          <div class="docs-list" id="docs-list">
+            <!-- injected by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Contacts -->
+      <div class="card card-contacts" id="contacts">
+        <div class="card-label"><span>§ Contacts</span><span class="badge">3 interlocuteurs</span></div>
+        <div class="tl-title" style="margin-bottom: 6px;">Vos <em>interlocuteurs</em></div>
+        <div class="contacts-grid">
+          <div class="contact">
+            <div class="contact-role">Commercial · Pilote</div>
+            <div class="contact-name">Nom du commercial</div>
+            <div class="contact-org">Société partenaire</div>
+            <div class="contact-lines">
+              <div><span class="lbl">Tél</span>+33 X XX XX XX XX</div>
+              <div><span class="lbl">Mail</span>contact@exemple.fr</div>
+              <div><span class="lbl">Std</span>01 XX XX XX XX</div>
+              <div><span class="lbl">Adr</span>Adresse de la société</div>
+            </div>
+          </div>
+          <div class="contact">
+            <div class="contact-role">Artisan · Exécution</div>
+            <div class="contact-name">Nom de l'artisan</div>
+            <div class="contact-org">Entreprise du bâtiment</div>
+            <div class="contact-lines">
+              <div><span class="lbl">Sir.</span>XXX XXX XXX XXXXX</div>
+              <div><span class="lbl">RGE</span>Référence RGE</div>
+              <div><span class="lbl">Tél</span>+33 X XX XX XX XX</div>
+              <div><span class="lbl">Rôle</span>Exécution des travaux</div>
+            </div>
+          </div>
+          <div class="contact">
+            <div class="contact-role">Administration</div>
+            <div class="contact-name">Organisme public</div>
+            <div class="contact-org">Exemple : organisme d'aide à la rénovation</div>
+            <div class="contact-lines">
+              <div><span class="lbl">Dos.</span>Référence du dossier</div>
+              <div><span class="lbl">Web</span>site officiel</div>
+              <div><span class="lbl">Rec.</span>Adresse postale</div>
+              <div><span class="lbl">Rôle</span>Suivi administratif</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- Paste email modal -->
+<div class="modal-overlay" id="paste-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Coller un <em>email</em> — extraction automatique</div>
+      <button class="modal-close" onclick="closeModal('paste-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size: 12px; color: var(--text-2); margin-bottom: 12px;">Collez ici le contenu d'un email reçu (artisan, organisme, fournisseur d'énergie...). L'assistant détectera automatiquement les dates, montants, références et ajoutera tout à la base de connaissances.</div>
+      <textarea class="modal-textarea" id="paste-input" placeholder="Exemple :&#10;Bonjour,&#10;Nous vous confirmons la planification de vos travaux à partir du 15/09/2026. Le second acompte de 25 000 € sera exigible à cette date.&#10;Cordialement, [Votre interlocuteur]"></textarea>
+
+      <div class="extract-results" id="paste-results">
+        <div class="extract-title">Informations détectées</div>
+        <div id="paste-results-body"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('paste-modal')">Annuler</button>
+      <button class="btn" id="paste-analyze-btn">Analyser</button>
+      <button class="btn primary" id="paste-save-btn" style="display:none">Ajouter à la base</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar modal -->
+<div class="modal-overlay" id="calendar-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Synchronisation <em>agenda</em></div>
+      <button class="modal-close" onclick="closeModal('calendar-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size: 12px; color: var(--text-2); margin-bottom: 16px;">Intégrez les dates clés de votre chantier à votre agenda. Deux options :</div>
+      <div class="calendar-options">
+        <button class="cal-option" id="ics-download">
+          <div class="cal-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div>
+            <div class="cal-t">Télécharger un fichier .ics</div>
+            <div class="cal-s">Compatible Google Calendar, Apple, Outlook — import en 1 clic</div>
+          </div>
+          <div class="cal-a">→</div>
+        </button>
+      </div>
+
+      <div style="margin-top: 18px;">
+        <div class="extract-title">Ou ajouter événement par événement à Google Agenda :</div>
+        <div class="cal-events" id="cal-events"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('calendar-modal')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Extraction results modal (for uploaded docs) -->
+<div class="modal-overlay" id="extract-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Document analysé — <em><span id="extract-filename"></span></em></div>
+      <button class="modal-close" onclick="closeModal('extract-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body" id="extract-body"></div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('extract-modal')">Fermer</button>
+      <button class="btn primary" id="extract-add-btn">Ajouter au dossier</button>
+    </div>
+  </div>
+</div>
+
+<!-- Future work modal -->
+<div class="modal-overlay" id="future-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><span id="fw-modal-title">Nouveau travail à prévoir</span></div>
+      <button class="modal-close" onclick="closeModal('future-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size: 12px; color: var(--text-2); margin-bottom: 18px;">Notez une idée ou un chantier à planifier pour <strong id="fw-project-name">cette maison</strong>. Vous pourrez le retrouver dans la section « Travaux à prévoir ».</div>
+      <div class="form-group">
+        <label>Titre</label>
+        <input type="text" id="fw-title" placeholder="Ex : Réfection toiture, aménagement combles…">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="fw-desc" placeholder="Quelques notes, ce que vous voulez faire, contraintes connues…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Priorité</label>
+          <select id="fw-priority">
+            <option value="1">Haute · urgent</option>
+            <option value="2" selected>Moyenne</option>
+            <option value="3">Basse · idée</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Coût estimé (€)</label>
+          <input type="number" id="fw-cost" placeholder="Optionnel">
+        </div>
+        <div class="form-group">
+          <label>Échéance souhaitée</label>
+          <input type="date" id="fw-deadline">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('future-modal')">Annuler</button>
+      <button class="btn primary" id="fw-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Command palette -->
+<div class="cmdk-overlay" id="cmdk-overlay">
+  <div class="cmdk-modal" role="dialog" aria-label="Palette de commandes">
+    <div class="cmdk-input-wrap">
+      <svg class="cmdk-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="cmdk-input" placeholder="Rechercher dans documents, travaux, jalons, actions…" autocomplete="off">
+      <kbd class="cmdk-esc">ESC</kbd>
+    </div>
+    <div class="cmdk-results" id="cmdk-results"></div>
+    <div class="cmdk-foot">
+      <span><kbd>↑↓</kbd>naviguer</span>
+      <span><kbd>↵</kbd>ouvrir</span>
+      <span><kbd>esc</kbd>fermer</span>
+      <span style="margin-left: auto;" id="cmdk-count">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- Property add/edit modal -->
+<div class="modal-overlay" id="property-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><em id="property-modal-title">Nouvelle propriété</em></div>
+      <button class="modal-close" onclick="closeModal('property-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Nom de la propriété *</label>
+          <input type="text" id="prop-name" placeholder="Ex : Maison de Bordeaux">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Nom court</label>
+          <input type="text" id="prop-shortname" placeholder="Auto si vide">
+        </div>
+        <div class="form-field" style="max-width: 80px;">
+          <label>Initiales</label>
+          <input type="text" id="prop-initials" maxlength="3" placeholder="Auto">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Localisation</label>
+          <input type="text" id="prop-location" placeholder="Commune ou quartier">
+        </div>
+        <div class="form-field">
+          <label>Région</label>
+          <input type="text" id="prop-region" placeholder="Région ou département">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Adresse complète (facultatif)</label>
+          <input type="text" id="prop-address" placeholder="Numéro, rue, code postal, ville">
+        </div>
+      </div>
+
+      <label class="form-toggle">
+        <input type="checkbox" id="prop-hasfinancials">
+        <div class="toggle-text">
+          <div class="toggle-title">Chantier de rénovation en cours</div>
+          <div class="toggle-desc">Active les sections financières, paiements, travaux planifiés et donut de financement.</div>
+        </div>
+      </label>
+
+      <div class="form-section" id="prop-finance-section">
+        <div class="form-section-title">Données financières</div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Coût total TTC (€)</label>
+            <input type="number" id="prop-totalcost" min="0" step="100" placeholder="0">
+          </div>
+          <div class="form-field">
+            <label>Aide principale (€)</label>
+            <input type="number" id="prop-mpramount" min="0" step="100" placeholder="0">
+          </div>
+          <div class="form-field">
+            <label>Bonus / parrainage (€)</label>
+            <input type="number" id="prop-ambamount" min="0" step="100" placeholder="0">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('property-modal')">Annuler</button>
+      <button class="btn" id="prop-save-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Property management modal -->
+<div class="modal-overlay" id="manage-properties-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Gérer les <em>propriétés</em></div>
+      <button class="modal-close" onclick="closeModal('manage-properties-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size: 12px; color: var(--text-3); margin-bottom: 14px;">Ajoutez, modifiez ou supprimez les biens immobiliers que vous suivez. La propriété active est indiquée par un repère.</div>
+      <div class="prop-list" id="prop-list"></div>
+      <button class="btn" onclick="openPropertyModal(null)" style="width: 100%; justify-content: center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter une propriété
+      </button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('manage-properties-modal')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Photo gallery modal -->
+<div class="modal-overlay" id="photos-modal">
+  <div class="modal modal-wide">
+    <div class="modal-head">
+      <div class="modal-title">Photos — <em id="photos-modal-title">…</em></div>
+      <button class="modal-close" onclick="closeModal('photos-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="photo-tabs">
+        <button class="photo-tab active" data-tab="before" type="button">Avant <span class="count" id="count-before">0</span></button>
+        <button class="photo-tab" data-tab="after" type="button">Après <span class="count" id="count-after">0</span></button>
+        <button class="photo-tab" data-tab="compare" type="button">Comparaison</button>
+      </div>
+
+      <div class="photo-panel active" data-panel="before">
+        <div class="photo-drop-zone" id="drop-before">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div>Glissez des photos ici, ou cliquez pour parcourir</div>
+          <div class="formats">JPG · PNG · HEIC · jusqu'à 20 Mo</div>
+          <input type="file" id="file-before" accept="image/*" capture="environment" multiple style="display:none">
+        </div>
+        <div class="photo-grid" id="grid-before"></div>
+      </div>
+
+      <div class="photo-panel" data-panel="after">
+        <div class="photo-drop-zone" id="drop-after">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div>Glissez les photos « après » ici, ou cliquez</div>
+          <div class="formats">JPG · PNG · HEIC · jusqu'à 20 Mo</div>
+          <input type="file" id="file-after" accept="image/*" capture="environment" multiple style="display:none">
+        </div>
+        <div class="photo-grid" id="grid-after"></div>
+      </div>
+
+      <div class="photo-panel" data-panel="compare">
+        <div class="ba-wrap">
+          <div id="ba-empty" class="ba-empty" style="display:none">
+            Ajoutez au moins une photo « avant » et une photo « après » pour activer la comparaison.
+          </div>
+          <div id="ba-slider-wrap" style="display:none">
+            <div class="ba-slider" id="ba-slider">
+              <img class="ba-before" id="ba-before-img" alt="avant">
+              <div class="ba-after-wrap" id="ba-after-wrap">
+                <img class="ba-after" id="ba-after-img" alt="après">
+              </div>
+              <div class="ba-handle" id="ba-handle"></div>
+              <div class="ba-label left">Avant</div>
+              <div class="ba-label right">Après</div>
+            </div>
+            <div class="ba-selects">
+              <div class="ba-select-group">
+                <label>Photo avant</label>
+                <select id="ba-select-before"></select>
+              </div>
+              <div class="ba-select-group">
+                <label>Photo après</label>
+                <select id="ba-select-after"></select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('photos-modal')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox for viewing single photos full-screen -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('active')">
+  <img id="lightbox-img" alt="">
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <span id="toast-text">Enregistré</span>
+</div>
+
+<!-- Modules loaded in dependency order -->
+<script src="js/utils.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/state.js"></script>
+<script src="js/render.js"></script>
+<script src="js/pdf-extract.js"></script>
+<script src="js/photos.js"></script>
+<script src="js/properties.js"></script>
+<script src="js/features.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
